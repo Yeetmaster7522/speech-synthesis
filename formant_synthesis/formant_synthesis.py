@@ -58,9 +58,8 @@ def save_signal(sig, fp):
 
 if __name__ == "__main__":
     t = np.linspace(0, 1, fs)
-    sig = gen_sourcesig(200, t)
-    # filtered_sig = butter_bandpass(sig, 4, 300, 3000)
-    filtered_sig = synth_vowel(sig, "o")
+    sig = gen_sourcesig(210, t)
+    filtered_sig = synth_vowel(sig, "a")
 
     save_signal(sig, "source_sig.wav")
     save_signal(filtered_sig, "filtered_sig.wav")
