@@ -12,7 +12,8 @@ synthesised speech
 import json
 import numpy as np
 from scipy.io import wavfile
-from scipy.signal import butter, lfilter, freqz
+from scipy import signal
+import matplotlib.pyplot as plt
 
 # # load formants.json
 # with open("formant_synthesis/formants.json", "r") as f:
@@ -20,42 +21,29 @@ from scipy.signal import butter, lfilter, freqz
 
 # print(formants)
 
-fs = 44100
+fs = 16000
 
-def gen_sourcesig(f=200):
+def gen_sourcesig(f, t=np.linspace(0, 1, fs)):
     """
-    Generates a sin wave
-
-    Set fundamental frequency to control pitch
+    Generates a sawtooth wave with set frequency at set fs
     """
-    # time in seconds
-    t = 1
+    return signal.sawtooth(2 * np.pi * f * t)
 
-    samples = np.arange(t * fs) / fs
-    signal = np.sin(2 * np.pi * f * samples)
-    signal *= 32767
-    signal = np.int16(signal)
+def butter_bandpass(sig, order, low, high):
+    sos = signal.butter(order, [low, high], btype="bandpass", fs=fs, output="sos")
+    return signal.sosfilt(sos, sig)
 
-    return signal
-
-def butter_bandpass(lowcut, highcut, order=5): # https://www.youtube.com/watch?v=OpAvWCIB44U&t=174s
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = butter(order, [low, high], btype="band")
-    return b, a
-
-def butter_bandpass_filter(data, lowcut, highcut, order=5):
-    b, a = butter_bandpass(lowcut, highcut, order=order)
-    y = lfilter(b, a, data)
-    return y
+def save_signal(sig, fp):
+    data = np.int16(sig * 32767)
+    wavfile.write(fp, fs, data)
 
 if __name__ == "__main__":
-    sig = gen_sourcesig()
-    lowcut = 30.0
-    highcut = 300.0
+    t = np.linspace(0, 1, fs)
+    sig = gen_sourcesig(200, t)
+    filtered_sig = butter_bandpass(sig, 4, 300, 3000)
 
-    new = butter_bandpass_filter(sig, lowcut, highcut)
+    plt.plot(t, sig, "r", t, filtered_sig, "b")
+    plt.show()
 
-    wavfile.write("source_sig.wav", fs, sig)
-    wavfile.write("filtered_sig.wav", fs, new)
+    save_signal(sig, "source_sig.wav")
+    save_signal(filtered_sig, "filtered_sig.wav")
