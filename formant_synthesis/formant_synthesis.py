@@ -22,11 +22,32 @@ with open("formant_synthesis/formants.json", "r") as f:
 # samples per second
 fs = 16000
 
-def gen_sourcesig(f, t=np.linspace(0, 1, fs)):
-    """
-    Generates a sawtooth wave at set frequency and timespan
-    """
+def gen_sawtooth(f, t=np.linspace(0, 1, fs)):
     return signal.sawtooth(2 * np.pi * f * t)
+
+def gen_sine(f, t=np.linspace(0, 1, fs)):
+    return np.sin(2 * np.pi * f * t)
+
+def gen_square(f, t=np.linspace(0, 1, fs)):
+    return signal.square(2 * np.pi * f * t)
+
+def gen_triangle(f, t=np.linspace(0, 1, fs)):
+    return signal.sawtooth(2 * np.pi * f * t, 0.5)
+
+"""
+NOTE
+Generate some functions for:
+    chirp
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.chirp.html#scipy.signal.chirp
+    gauss pulse
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.gausspulse.html#scipy.signal.gausspulse
+    sweep poly
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sweep_poly.html#scipy.signal.sweep_poly
+    unit impulse
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.unit_impulse.html#scipy.signal.unit_impulse
+"""
+
+
 
 def butter_bandpass(sig, order, low, high):
     sos = signal.butter(order, [low, high], btype="bandpass", fs=fs, output="sos")
@@ -58,9 +79,19 @@ def save_signal(sig, fp):
 
 if __name__ == "__main__":
     t = np.linspace(0, 1, fs)
-    sig = gen_sourcesig(210, t)
-    filtered_sig = synth_vowel(sig, "a")
+    sig = gen_sawtooth(210, t)
+    # sig = gen_square(210, t)
+    
+    # sig = gen_sine(50, t)
+    # for i in range(100, 3400, 50):
+    #     sig += gen_sine(i, t)
 
+    # sig = gen_triangle(50, t)
+    # for i in range(100, 3400, 50):
+    #     sig += gen_triangle(i, t)
+
+    filtered_sig = synth_vowel(sig, "a")
+    
     save_signal(sig, "source_sig.wav")
     save_signal(filtered_sig, "filtered_sig.wav")
 
